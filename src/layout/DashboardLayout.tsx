@@ -1,5 +1,8 @@
+import { ModeToggle } from "@/components/mode-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Card,
   CardContent,
@@ -15,8 +18,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Bell,
   CircleUser,
@@ -29,9 +30,24 @@ import {
   ShoppingCart,
   Users,
 } from "lucide-react";
-import { Link, NavLink, Outlet } from "react-router-dom";
+
+import { useDispatch, useSelector } from "react-redux";
+import { Link, Navigate, NavLink, Outlet } from "react-router-dom";
+import { AppDispatch, RootState } from "@/store/store";
+import { deleteToken } from "@/store/features/auth/authSlice";
+import toast from "react-hot-toast";
 
 const DashboardLayout = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const token = useSelector((state: RootState) => state.auth.token);
+  if (!token) {
+    return <Navigate to={"/auth/login"} replace />;
+  }
+
+  const logoutFn = () => {
+    dispatch(deleteToken(""));
+    toast("Logout SuccessFully");
+  };
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
@@ -61,7 +77,7 @@ const DashboardLayout = () => {
               </NavLink>
 
               <NavLink
-                to="/dashboard/books"
+                to="/books"
                 className={({ isActive }) => {
                   return `flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${
                     isActive && "bg-muted"
@@ -182,6 +198,7 @@ const DashboardLayout = () => {
               </div>
             </form>
           </div>
+          <ModeToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
@@ -196,7 +213,9 @@ const DashboardLayout = () => {
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
-                <Button variant={"link"}>Logout</Button>
+                <Button variant={"link"} onClick={logoutFn}>
+                  Logout
+                </Button>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
