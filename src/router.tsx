@@ -2,10 +2,11 @@ import { createBrowserRouter } from "react-router-dom";
 import HomePage from "@/pages/HomePage";
 import NotFoundPage from "@/pages/NotFoundPage";
 import DashboardLayout from "@/layout/DashboardLayout";
-import BookPage, { bookFetcher } from "./pages/BookPage";
+import BookPage from "./pages/BookPage";
 import AuthLayout from "./layout/AuthLayout";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import CreateBook from "./pages/CreateBook";
 
 const router = createBrowserRouter(
   [
@@ -22,6 +23,11 @@ const router = createBrowserRouter(
         {
           path: "books",
           element: <BookPage />,
+        
+        },
+        {
+          path: "create",
+          element: <CreateBook />,
         },
       ],
     },

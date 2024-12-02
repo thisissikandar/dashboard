@@ -20,19 +20,23 @@ import { Link, useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>()
+  const dispatch = useDispatch<AppDispatch>();
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const mutation = useMutation({
     mutationFn: login,
     onSuccess: (data) => {
-      toast("Logged in successfully");
+      toast.success(data.data.message);
       console.log(data);
-      dispatch(setToken(data.data?.accessToken))
-      navigate("/"); // Redirect to dashboard after successful login
+      const token = {
+        accessToken: data.data.data.accessToken,
+        refreshToken: data.data.data.refreshToken,
+      };
+      dispatch(setToken(token));
+      navigate("/");
     },
   });
-  const loginHandler = () => {  
+  const loginHandler = () => {
     try {
       const email = emailRef.current?.value;
       const password = passwordRef.current?.value;

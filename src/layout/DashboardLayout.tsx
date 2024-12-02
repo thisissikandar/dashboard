@@ -36,17 +36,20 @@ import { Link, Navigate, NavLink, Outlet } from "react-router-dom";
 import { AppDispatch, RootState } from "@/store/store";
 import { deleteToken } from "@/store/features/auth/authSlice";
 import toast from "react-hot-toast";
+import { logOut } from "@/api/axios";
 
 const DashboardLayout = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const token = useSelector((state: RootState) => state.auth.token);
+  const token = useSelector((state: RootState) => state.auth.accessToken);
   if (!token) {
     return <Navigate to={"/auth/login"} replace />;
   }
 
   const logoutFn = () => {
-    dispatch(deleteToken(""));
-    toast("Logout SuccessFully");
+    dispatch(deleteToken());
+    logOut().then((data)=>{
+      toast.success(data.data.message);
+    })
   };
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
