@@ -1,11 +1,7 @@
-import {  useMutation, useQueryClient } from "@tanstack/react-query";
-import { LoaderCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 
-import { createBook } from "@/api/axios";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -32,16 +28,20 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { LoaderCircle } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { bookbyId, updateBook } from "@/api/axios";
 
 const formSchema = z.object({
   title: z.string().min(2, {
     message: "Title must be at least 2 characters.",
   }),
-  author: z.string().min(2, {
-    message: "Genre must be at least 2 characters.",
-  }),
   genre: z.string().min(2, {
     message: "Genre must be at least 2 characters.",
+  }),
+  author: z.string().min(2, {
+    message: "Author must be at least 2 characters.",
   }),
   description: z.string().min(2, {
     message: "Description must be at least 2 characters.",
@@ -53,9 +53,10 @@ const formSchema = z.object({
     return file.length == 1;
   }, "Book PDF is required"),
 });
-
-const CreateBook = () => {
+const UpdateBookPage = () => {
+  const { id } = useParams();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -65,30 +66,53 @@ const CreateBook = () => {
       description: "",
     },
   });
-  const fileRef = form.register("file");
   const coverImageRef = form.register("coverImage");
-  const navigate = useNavigate();
+  const fileRef = form.register("file");
 
+  const { isPending, error, data } = useQuery({
+    queryKey: ["signlebook"],
+    queryFn: () => bookbyId(id as string),
+  });
+  console.log("data", data);
+  
+if(data){
+  form.setValue("title", data.data.title);
+  form.setValue("genre", data.data.genre);
+  form.setValue("author", data.data.author);
+  form.setValue("description", data.data.description);
+  form.setValue("coverImage", data.data.coverImage);
+  form.setValue("file", data.data.file);
+}
   const mutation = useMutation({
-    mutationFn: createBook,
+    mutationFn: updateBook,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["books"] });
       console.log("Book created successfully");
       navigate("/books");
     },
   });
-  function onSubmit(values: z.infer<typeof formSchema>) {
-       const formdata = new FormData();
-        formdata.append('title', values.title);
-        formdata.append('genre', values.genre);
-        formdata.append('description', values.description);
-        formdata.append('coverImage', values.coverImage[0]);
-        formdata.append('file', values.file[0]);
 
-        mutation.mutate(formdata);
-
-        console.log(values);
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    const formdata = new FormData();
+    formdata.append("title", values.title);
+    formdata.append("genre", values.genre);
+    formdata.append("author", values.author);
+    formdata.append("description", values.description ?? "");
+    formdata.append("coverImage", values.coverImage[0] || undefined);
+    formdata.append("file", values.file[0] || undefined);
+    mutation.mutate(formdata);
   };
+
+  if (isPending)
+    return (
+      <div className="flex justify-center items-center h-screen">
+        {" "}
+        <LoaderCircle className="animate-spin  w-16 h-16" />
+      </div>
+    );
+
+  if (error) return "An error has occurred: " + error.message;
+
   return (
     <section>
       <Form {...form}>
@@ -105,7 +129,7 @@ const CreateBook = () => {
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Create</BreadcrumbPage>
+                  <BreadcrumbPage>Update</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
@@ -125,7 +149,7 @@ const CreateBook = () => {
           </div>
           <Card className="mt-6">
             <CardHeader>
-              <CardTitle>Create a new book</CardTitle>
+              <CardTitle>Update book</CardTitle>
               <CardDescription>
                 Fill out the form below to create a new book.
               </CardDescription>
@@ -227,4 +251,4 @@ const CreateBook = () => {
   );
 };
 
-export default CreateBook;
+export default UpdateBookPage;
