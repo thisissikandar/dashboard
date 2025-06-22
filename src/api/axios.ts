@@ -14,13 +14,13 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
-const refreshAccessToken = async () => {
-  try {
-    await axiosInstance.post("/api/v1/users/refresh-token"); 
-  } catch (error) {
-    throw error;
-  }
-};
+// const refreshAccessToken = async () => {
+//   try {
+//     await axiosInstance.post("/api/v1/users/refresh-token"); 
+//   } catch (error) {
+//     throw error;
+//   }
+// };
 
 const login = async (data: { email: string; password: string }) =>
   axiosInstance.post("/api/v1/users/login", data);
